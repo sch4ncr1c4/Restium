@@ -117,7 +117,7 @@ export function renderOrderCategories(state) {
         const active = category === state.selectedCatalogCategory;
         const customColor = state.catalogCategoryColors?.[category];
         const hasCustomColor = Boolean(customColor) && customColor.toUpperCase() !== "#FFFFFF";
-        const base = "rounded-md border px-3 py-1.5 text-sm font-semibold transition";
+        const base = "rounded-md border px-4 py-2 text-sm font-semibold transition";
         const style = hasCustomColor
           ? active
             ? "border-zinc-700 text-white ring-2 ring-zinc-400 ring-offset-1"
@@ -651,10 +651,15 @@ export function initQuickCatalogModals(state) {
   document.getElementById("orderCategoryChips")?.addEventListener("click", (event) => {
     const chip = event.target.closest("[data-category-chip]");
     if (!chip) return;
-    state.selectedCatalogCategory = chip.dataset.categoryChip;
+
     if (state.catalogPaintColor && !state.catalogLocked) {
-      state.catalogCategoryColors[state.selectedCatalogCategory] = state.catalogPaintColor;
+      const categoryToPaint = chip.dataset.categoryChip;
+      state.catalogCategoryColors[categoryToPaint] = state.catalogPaintColor;
+      renderOrderCategories(state);
+      return;
     }
+
+    state.selectedCatalogCategory = chip.dataset.categoryChip;
     renderOrderCategories(state);
     renderCatalog(state);
   });
