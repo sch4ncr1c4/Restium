@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Poppins", "sans-serif"],
+          },
+          colors: {
+            emeraldbrand: "#50C878",
+          },
+        },
+      },
+    };
+  </script>
+  <title>Crear cuenta | Sistema Gastronomico</title>
+</head>
+<body class="min-h-screen bg-zinc-50 font-sans text-zinc-800">
+  <main class="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10">
+    <section class="grid w-full overflow-hidden rounded-2xl bg-white shadow-xl lg:grid-cols-2">
+      <article class="hidden bg-emeraldbrand p-10 text-white lg:block">
+        <h1 class="text-3xl font-semibold leading-tight">Sistema Gastronomico</h1>
+        <p class="mt-4 text-sm text-emerald-50">Gestiona menu digital, reservas y pedidos desde un solo lugar.</p>
+        <ul class="mt-8 space-y-4 text-sm">
+          <li class="rounded-lg bg-white/10 px-4 py-3">Panel centralizado para tu restaurante.</li>
+          <li class="rounded-lg bg-white/10 px-4 py-3">Control de pedidos en tiempo real.</li>
+          <li class="rounded-lg bg-white/10 px-4 py-3">Experiencia rapida para tu equipo y clientes.</li>
+        </ul>
+      </article>
+
+      <article class="p-6 sm:p-10">
+        <a href="../index.html" class="text-sm font-medium text-zinc-500 hover:text-zinc-700">Volver al inicio</a>
+        <h2 class="mt-4 text-2xl font-semibold text-zinc-900">Crear cuenta</h2>
+        <p class="mt-1 text-sm text-zinc-500">Completa tus datos para comenzar.</p>
+
+        <form class="mt-8 space-y-4" action="#" method="post" autocomplete="on">
+          <div>
+            <label for="business_username" class="mb-1 block text-sm font-medium text-zinc-700">Nombre de usuario del negocio</label>
+            <input id="business_username" name="business_username" type="text" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="ej: la-parrilla-centro">
+          </div>
+
+          <div>
+            <label for="owner_name" class="mb-1 block text-sm font-medium text-zinc-700">Nombre del propietario</label>
+            <input id="owner_name" name="owner_name" type="text" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="Juan Perez">
+          </div>
+
+          <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-zinc-700">Mail</label>
+            <input id="email" name="email" type="email" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="nombre@correo.com">
+          </div>
+
+          <div>
+            <label for="phone" class="mb-1 block text-sm font-medium text-zinc-700">Telefono</label>
+            <input id="phone" name="phone" type="tel" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="+54 9 11 1234-5678">
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="password" class="mb-1 block text-sm font-medium text-zinc-700">Contrasena</label>
+              <input id="password" name="password" type="password" minlength="8" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="Minimo 8 caracteres">
+            </div>
+            <div>
+              <label for="confirm_password" class="mb-1 block text-sm font-medium text-zinc-700">Confirmar contrasena</label>
+              <input id="confirm_password" name="confirm_password" type="password" minlength="8" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="Repite tu contrasena">
+            </div>
+          </div>
+
+          <label class="flex items-start gap-2 text-sm text-zinc-600">
+            <input id="terms" name="terms" type="checkbox" required class="mt-1 h-4 w-4 rounded border-zinc-300 text-emeraldbrand focus:ring-emeraldbrand">
+            Acepto los terminos y condiciones y la politica de privacidad.
+          </label>
+
+          <button type="submit" class="w-full rounded-lg bg-emeraldbrand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600">
+            Crear cuenta
+          </button>
+        </form>
+
+        <p class="mt-5 text-center text-sm text-zinc-600">
+          Ya tienes cuenta?
+          <a href="./signin.html" class="font-medium text-emerald-700 hover:text-emerald-800">Iniciar sesion</a>
+        </p>
+      </article>
+    </section>
+  </main>
+  <script src="../scripts/pages/signup.js"></script>
+</body>
+</html>
+
+

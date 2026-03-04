@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Poppins", "sans-serif"],
+          },
+          colors: {
+            emeraldbrand: "#50C878",
+          },
+        },
+      },
+    };
+  </script>
+  <title>Sistema Gastronomico + Menu Digital</title>
+</head>
+<body class="flex min-h-screen flex-col bg-zinc-50 font-sans text-zinc-800">
+  <nav id="nav-menu" class="fixed right-0 top-0 z-50 h-full w-[280px] translate-x-full bg-zinc-800 pt-16 shadow-[-2px_0_10px_rgba(0,0,0,0.3)] transition-transform duration-300 md:static md:h-auto md:w-full md:translate-x-0 md:bg-transparent md:pt-0 md:shadow-none">
+    <div class="flex items-center justify-between px-5 py-2.5 md:justify-center md:gap-8">
+      <a href="#">
+        <img class="h-10 w-auto rounded-full object-cover" src="https://imgs.search.brave.com/Aff4iG0ZI1CNwWmxWj6xpmwipHbR2d1tKBxcDDUJT-g/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tYXJr/ZXRwbGFjZS5jYW52/YS5jb20vRUFGMGdy/cHAtZ1UvMi8wLzE2/MDB3L2NhbnZhLWxv/Z28tcG9zdHJlcy1h/cnRlc2FuYWxlcy1n/YXN0cm9uJUMzJUIz/bWljby1pbHVzdHJh/dGl2by1yb3NhLXY3/TmMwWnd6X0Q0Lmpw/Zw" alt="Logo Sistema Gastronomico">
+      </a>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0 md:flex-row md:items-center md:justify-center">
+        <li><a href="#" class="block rounded px-3 py-2 text-base font-light text-white transition hover:bg-white/10 md:text-zinc-700 md:hover:bg-zinc-200">INICIO</a></li>
+        <li><a href="#" class="block rounded px-3 py-2 text-base font-light text-white transition hover:bg-white/10 md:text-zinc-700 md:hover:bg-zinc-200">CARACTERISTICAS</a></li>
+        <li><a href="./pages/signin.html" class="block rounded border border-white/30 bg-transparent px-3 py-2 text-base font-light text-white transition hover:bg-white/10 md:border-zinc-300 md:text-zinc-700 md:hover:bg-zinc-200">INICIAR SESION</a></li>
+        <li><a href="./pages/signup.html" class="block rounded border border-white/30 bg-transparent px-3 py-2 text-base font-light text-white transition hover:bg-white/10 md:border-zinc-300 md:text-zinc-700 md:hover:bg-zinc-200">CREAR CUENTA</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="relative flex items-center justify-center bg-emeraldbrand px-5 py-4 text-white">
+    <h1 class="m-0 text-xl font-bold">es la solucion inteligente de gestión gastronómica integral para tu Restaurante, Bar o Cafeterí­a</h1>
+    <button type="button" class="absolute right-5 z-[60] flex h-6 w-8 cursor-pointer flex-col justify-between md:hidden" id="hamburger" aria-label="Abrir menu">
+      <span class="block h-[3px] w-full rounded bg-white transition-all duration-300"></span>
+      <span class="block h-[3px] w-full rounded bg-white transition-all duration-300"></span>
+      <span class="block h-[3px] w-full rounded bg-white transition-all duration-300"></span>
+    </button>
+  </header>
+
+  <div class="fixed inset-0 z-40 hidden bg-black/40 md:hidden" id="overlay"></div>
+
+  <main class="flex-1 p-5">
+    <section class="mb-6 rounded-lg bg-white p-5 shadow-sm">
+      <h2 class="mb-2 text-xl font-semibold">Bienvenido al sistema gastronomico</h2>
+      <p>Aqui podras explorar nuestro menu digital, realizar pedidos y hacer reservas de manera sencilla y rapida.</p>
+    </section>
+
+    <section class="rounded-lg bg-white p-5 shadow-sm">
+      <h2 class="mb-2 text-xl font-semibold">Destacados del dia</h2>
+      <ul class="list-disc pl-5">
+        <li>Pizza Margarita</li>
+        <li>Ensalada Cesar</li>
+        <li>Hamburguesa Gourmet</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="bg-zinc-900 p-4 text-center text-zinc-300">
+    <p>Contacto: info@sistemagastronomico.com | Tel: +54 9 11 1234-5678</p>
+    <p>Direccion: Calle Ficticia 123, Ciudad, Pais</p>
+    <p>&copy; 2026 Sistema Gastronomico</p>
+  </footer>
+  <script src="./scripts/main.js"></script>
+</body>
+</html>
+
+
+

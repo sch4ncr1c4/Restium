@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Restium logo">
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#50C878" stroke-width="20" />
+  <path
+    d="M184 186H248C299 186 328 214 328 252C328 289 300 315 260 321L306 392C315 406 331 414 350 414"
+    fill="none"
+    stroke="#50C878"
+    stroke-width="24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="234" cy="258" r="14" fill="#50C878" />
+</svg>

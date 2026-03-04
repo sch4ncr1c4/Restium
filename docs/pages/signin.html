@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Poppins", "sans-serif"],
+          },
+          colors: {
+            emeraldbrand: "#50C878",
+          },
+        },
+      },
+    };
+  </script>
+  <title>Iniciar sesion | Sistema Gastronomico</title>
+</head>
+<body class="min-h-screen bg-zinc-50 font-sans text-zinc-800">
+  <main class="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10">
+    <section class="grid w-full overflow-hidden rounded-2xl bg-white shadow-xl lg:grid-cols-2">
+      <article class="hidden bg-emeraldbrand p-10 text-white lg:block">
+        <h1 class="text-3xl font-semibold leading-tight">Sistema Gastronomico</h1>
+        <p class="mt-4 text-sm text-emerald-50">Accede a tu panel para gestionar menu digital, pedidos y reservas.</p>
+        <ul class="mt-8 space-y-4 text-sm">
+          <li class="rounded-lg bg-white/10 px-4 py-3">Gestion centralizada del negocio.</li>
+          <li class="rounded-lg bg-white/10 px-4 py-3">Control rapido de pedidos y mesas.</li>
+          <li class="rounded-lg bg-white/10 px-4 py-3">Informacion clara para tu equipo.</li>
+        </ul>
+      </article>
+
+      <article class="p-6 sm:p-10">
+        <a href="../index.html" class="text-sm font-medium text-zinc-500 hover:text-zinc-700">Volver al inicio</a>
+        <h2 class="mt-4 text-2xl font-semibold text-zinc-900">Iniciar sesion</h2>
+        <p class="mt-1 text-sm text-zinc-500">Ingresa con tu cuenta para continuar.</p>
+
+        <form class="mt-8 space-y-4" action="#" method="post" autocomplete="on">
+          <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-zinc-700">Mail</label>
+            <input id="email" name="email" type="email" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="nombre@correo.com">
+          </div>
+
+          <div>
+            <label for="password" class="mb-1 block text-sm font-medium text-zinc-700">Contrasena</label>
+            <input id="password" name="password" type="password" minlength="8" required class="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none transition focus:border-emeraldbrand focus:ring-2 focus:ring-emeraldbrand/20" placeholder="Tu contrasena">
+          </div>
+
+          <button type="submit" class="w-full rounded-lg bg-emeraldbrand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600">
+            Iniciar sesion
+          </button>
+        </form>
+
+        <p class="mt-5 text-center text-sm text-zinc-600">
+          No tienes cuenta?
+          <a href="./signup.html" class="font-medium text-emerald-700 hover:text-emerald-800">Crear cuenta</a>
+        </p>
+      </article>
+    </section>
+  </main>
+  <script src="../scripts/pages/signin.js"></script>
+</body>
+</html>
+
