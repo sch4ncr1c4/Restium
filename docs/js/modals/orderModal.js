@@ -126,7 +126,7 @@ export function renderOrderCategories(state) {
       const active = category === state.selectedCatalogCategory;
       const customColor = state.catalogCategoryColors?.[category];
       const hasCustomColor = Boolean(customColor) && customColor.toUpperCase() !== "#FFFFFF";
-      const base = "rounded-md border px-5 py-2.5 text-base font-semibold transition";
+      const base = "shrink-0 rounded-md border px-3 py-2 text-sm font-semibold transition sm:px-5 sm:py-2.5 sm:text-base";
       const style = hasCustomColor
         ? active
           ? "border-zinc-700 text-white ring-2 ring-zinc-400 ring-offset-1"
@@ -219,8 +219,8 @@ export function initOrderModal(state) {
   orderModal.className =
     "fixed inset-0 z-[83] hidden items-center justify-center bg-zinc-900/60 p-3 sm:p-4 opacity-0 transition-opacity duration-200";
   orderModal.innerHTML = `
-    <div id="orderModalPanel" class="relative flex h-[82vh] w-full max-w-[1500px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xl">
-      <div class="mb-3 flex items-start justify-between gap-3 border-b border-zinc-200 pb-3">
+    <div id="orderModalPanel" class="relative flex h-[100dvh] max-h-[100dvh] w-full max-w-[1500px] flex-col overflow-y-auto rounded-xl border border-zinc-200 bg-white p-3 pb-[env(safe-area-inset-bottom)] shadow-2xl sm:h-[88vh] sm:max-h-[88vh] sm:rounded-2xl sm:p-4 lg:h-[82vh] lg:max-h-[82vh] lg:overflow-hidden">
+      <div class="mb-3 flex flex-col gap-3 border-b border-zinc-200 pb-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Gestion de mesa</p>
           <h3 id="orderModalTitle" class="text-lg font-semibold">Mesa</h3>
@@ -229,21 +229,21 @@ export function initOrderModal(state) {
             <select id="orderWaiterSelect" class="rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs"></select>
           </div>
         </div>
-        <div class="flex min-w-0 flex-1 flex-col items-center gap-2">
+        <div class="flex min-w-0 flex-col items-start gap-2 sm:flex-1 sm:items-center">
           <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Categorias</p>
-          <div class="flex max-w-full flex-wrap items-center justify-center gap-2">
-            <div id="orderCategoryChips" class="flex max-w-full flex-wrap items-center justify-center gap-2"></div>
+          <div class="w-full overflow-x-auto sm:flex sm:max-w-full sm:flex-wrap sm:items-center sm:justify-center sm:gap-2 sm:overflow-visible">
+            <div id="orderCategoryChips" class="flex w-max min-w-full items-center gap-2 sm:w-auto sm:min-w-0 sm:max-w-full sm:flex-wrap sm:justify-center"></div>
           </div>
         </div>
-        <button id="closeOrderModal" type="button" class="rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-700">Cerrar</button>
+        <button id="closeOrderModal" type="button" class="self-end rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-700 sm:self-auto">Cerrar</button>
       </div>
-      <div class="grid min-h-0 flex-1 gap-3 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <section class="flex min-h-0 flex-col rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+      <div class="grid min-h-0 flex-1 gap-3 pb-[calc(env(safe-area-inset-bottom)+7rem)] md:grid-cols-[300px_minmax(0,1fr)] md:pb-0 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <section class="flex flex-col rounded-xl border border-zinc-200 bg-zinc-50 p-3 md:min-h-0">
           <div class="mb-2 flex items-center justify-between">
             <h4 class="text-sm font-semibold">Productos cargados</h4>
             <span id="orderItemsCount" class="rounded-md bg-white px-2 py-1 text-[11px]">0 items</span>
           </div>
-          <div id="orderItemsList" class="min-h-0 flex-1 space-y-2 overflow-y-auto"></div>
+          <div id="orderItemsList" class="min-h-[180px] flex-1 space-y-2 overflow-y-auto md:min-h-0"></div>
           <div class="mt-3 border-t border-zinc-200 pt-3 text-sm">
             <div class="flex justify-between"><span>Subtotal</span><strong id="orderSubtotal">$0</strong></div>
             <div class="flex justify-between"><span>Sena</span><strong id="orderDeposit">-$0</strong></div>
@@ -257,7 +257,7 @@ export function initOrderModal(state) {
             </div>
           </div>
         </section>
-        <section class="flex min-h-0 flex-col rounded-xl border border-zinc-200 bg-white p-3">
+        <section class="flex flex-col rounded-xl border border-zinc-200 bg-white p-3 md:min-h-0">
           <div class="mb-3 flex items-center justify-between gap-2">
             <h4 class="text-sm font-semibold">Carga de productos</h4>
             <div class="flex items-center gap-2">
@@ -271,10 +271,10 @@ export function initOrderModal(state) {
               </div>
             </div>
           </div>
-          <div id="catalogBoard" class="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-0"></div>
+          <div id="catalogBoard" class="relative min-h-[300px] flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-0 md:min-h-0"></div>
         </section>
       </div>
-      <div id="catalogPaletteControl" class="absolute bottom-1 right-1 z-20 flex items-center gap-2">
+      <div id="catalogPaletteControl" class="absolute bottom-2 right-2 z-20 flex items-center gap-2">
         <div id="catalogPaletteTray" class="pointer-events-none flex max-w-[80vw] items-center gap-2 rounded-full border border-zinc-200 bg-white/95 px-3 py-2 shadow-xl transition-all duration-200 opacity-0 translate-x-3 scale-95 origin-right">
           <div id="catalogColorPalette" class="flex flex-wrap items-center gap-1.5"></div>
         </div>

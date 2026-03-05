@@ -1,4 +1,4 @@
-﻿import { openModal, closeModal } from "./modalCore.js";
+import { openModal, closeModal } from "./modalCore.js";
 import {
   buildTableButton,
   getGridTables,
@@ -12,6 +12,7 @@ import {
   syncStaticAsideHeight,
   getActiveRemovablePlanCount,
   mountMissingPlan,
+  syncGridTableRatios,
 } from "../plans/planGrid.js";
 import { hideTableContextMenu } from "../plans/contextMenu.js";
 import { PLAN_PADDING } from "../config.js";
@@ -136,6 +137,7 @@ export function initTableModals(state, handlers) {
       state.addTableError.classList.remove("hidden");
       return;
     }
+    syncGridTableRatios(state.contextTargetGrid);
     closeModal(state, state.addTableModal, { panel: state.addTableModalPanel });
   });
 
@@ -161,7 +163,11 @@ export function initTableModals(state, handlers) {
   });
 
   state.confirmDeleteTable.addEventListener("click", () => {
-    if (state.contextTargetTable) state.contextTargetTable.remove();
+    if (state.contextTargetTable) {
+      const grid = state.contextTargetTable.parentElement;
+      state.contextTargetTable.remove();
+      if (grid) syncGridTableRatios(grid);
+    }
     closeModal(state, state.deleteTableModal, { panel: state.deleteTableModalPanel });
   });
 
@@ -291,3 +297,5 @@ export function initTableModals(state, handlers) {
     }
   });
 }
+
+

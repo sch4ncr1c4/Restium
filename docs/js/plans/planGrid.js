@@ -6,6 +6,7 @@
   MIN_TABLE_SIZE,
   MAX_TABLE_SIZE,
   PLAN_PADDING,
+  PLAN_RESIZE_STEP_H,
   PLAN_MIN_W,
   PLAN_MAX_W,
   PLAN_MIN_H,
@@ -13,6 +14,8 @@
   PLAN_META,
 } from "../config.js";
 import { clamp, normalizePosition, denormalizePosition } from "../utils/math.js";
+
+const MAX_PLAN_GROW_STEPS = 5;
 
 const TABLE_BASE_CLASSES = [
   "border-emerald-500",
@@ -64,6 +67,10 @@ export function syncStaticAsideHeight(state, forceRecalc = false) {
   if (window.innerWidth < 1280) {
     state.staticPlansAside.style.height = "";
     state.staticPlansAside.style.minHeight = "";
+    state.staticPlansAside.style.maxHeight = "";
+    state.staticPlansAside.style.overflowY = "";
+    state.plansColumn.style.maxHeight = "";
+    state.plansColumn.style.overflowY = "";
     return;
   }
   const canRecalc = forceRecalc && getActiveRemovablePlanCount(state) === 2;
@@ -71,16 +78,41 @@ export function syncStaticAsideHeight(state, forceRecalc = false) {
     const measured = Math.round(state.plansColumn.getBoundingClientRect().height);
     if (measured > 0) state.staticAsideBaselineHeight = measured;
   }
+  const asideTop = Math.round(state.staticPlansAside.getBoundingClientRect().top);
+  const viewportAvailable = Math.max(320, window.innerHeight - asideTop - 16);
+  const targetHeight = Math.max(320, Math.min(state.staticAsideBaselineHeight || viewportAvailable, viewportAvailable));
+
+  state.plansColumn.style.maxHeight = `${viewportAvailable}px`;
+  state.plansColumn.style.overflowY = "auto";
+  state.staticPlansAside.style.maxHeight = `${viewportAvailable}px`;
+  state.staticPlansAside.style.overflowY = "auto";
   if (state.staticAsideBaselineHeight) {
-    state.staticPlansAside.style.height = `${state.staticAsideBaselineHeight}px`;
-    state.staticPlansAside.style.minHeight = `${state.staticAsideBaselineHeight}px`;
+    state.staticPlansAside.style.height = `${targetHeight}px`;
+    state.staticPlansAside.style.minHeight = `${targetHeight}px`;
   }
 }
 
 export function getColumnsForWidth(width) {
-  if (width < 768) return 5;
-  if (width < 1100) return 12;
-  return DESKTOP_TABLE_COLUMNS;
+  const gap = getGapForWidth(width);
+  const availableWidth = Math.max(width - PLAN_PADDING * 2, 0);
+  const minCols = width < 768 ? 5 : width < 1100 ? 8 : 10;
+  let cols = width < 768 ? 5 : width < 1100 ? 12 : DESKTOP_TABLE_COLUMNS;
+
+  // Grow columns when cells would exceed max size, so grid uses width better.
+  while (cols < DESKTOP_TABLE_COLUMNS) {
+    const raw = Math.floor((availableWidth - gap * (cols - 1)) / cols);
+    if (raw <= MAX_TABLE_SIZE) break;
+    cols += 1;
+  }
+
+  // Avoid making cells too small after responsive changes.
+  while (cols > minCols) {
+    const raw = Math.floor((availableWidth - gap * (cols - 1)) / cols);
+    if (raw >= Math.max(MIN_TABLE_SIZE, 36)) break;
+    cols -= 1;
+  }
+
+  return cols;
 }
 
 function getGapForWidth(width) {
@@ -117,27 +149,139 @@ function updateTableVisualSize(grid, tableSize) {
   });
 }
 
+function buildAxisPositions(start, max, step) {
+  const positions = [];
+  for (let pos = start; pos <= max; pos += step) {
+    positions.push(pos);
+  }
+  if (!positions.length || positions[positions.length - 1] !== max) {
+    positions.push(max);
+  }
+  return positions;
+}
+
+function nearestIndex(positions, value) {
+  return positions.reduce(
+    (best, pos, idx) => {
+      const dist = Math.abs(value - pos);
+      if (dist < best.dist) return { idx, dist };
+      return best;
+    },
+    { idx: 0, dist: Number.POSITIVE_INFINITY },
+  ).idx;
+}
+
+function getAxisBounds(width, height, tableSize, tableCount, columns, gap) {
+  const rows = Math.ceil(Math.max(tableCount, 1) / Math.max(columns, 1));
+  const baseHeight = PLAN_PADDING * 2 + rows * tableSize + (rows - 1) * gap;
+  const maxLeft = Math.max(PLAN_PADDING, width - tableSize - PLAN_PADDING);
+  const maxTop = Math.max(PLAN_PADDING, Math.max(height, baseHeight) - tableSize - PLAN_PADDING);
+  return { maxLeft, maxTop };
+}
+
+export function syncGridTableRatios(grid) {
+  if (!grid || !grid.isConnected) return;
+  const width = grid.clientWidth;
+  const height = grid.clientHeight;
+  const tableSize = parseFloat(grid.dataset.tableSize || "0");
+  const columns = parseInt(grid.dataset.tableColumns || String(DESKTOP_TABLE_COLUMNS), 10);
+  const gap = parseInt(grid.dataset.tableGap || String(TABLE_GAP_DESKTOP), 10);
+  const tables = getGridTables(grid);
+  const { maxLeft, maxTop } = getAxisBounds(width, height, tableSize, tables.length, columns, gap);
+
+  tables.forEach((table) => {
+    const pos = readTablePosition(table);
+    table.dataset.ratioX = String(normalizePosition(pos.left, PLAN_PADDING, maxLeft));
+    table.dataset.ratioY = String(normalizePosition(pos.top, PLAN_PADDING, maxTop));
+  });
+}
+
+function snapGridTablesToCells(grid, width, height, tableSize, columns, gap, updateRatios) {
+  const tables = getGridTables(grid);
+  if (!tables.length) return;
+  const { maxLeft, maxTop } = getAxisBounds(width, height, tableSize, tables.length, columns, gap);
+  const step = Math.max(1, tableSize + gap);
+  const colPositions = buildAxisPositions(PLAN_PADDING, maxLeft, step);
+  const rowPositions = buildAxisPositions(PLAN_PADDING, maxTop, step);
+  const occupied = new Set();
+
+  tables.forEach((table) => {
+    const pos = readTablePosition(table);
+    let col = nearestIndex(colPositions, pos.left);
+    let row = nearestIndex(rowPositions, pos.top);
+    let key = `${col}:${row}`;
+
+    if (occupied.has(key)) {
+      let found = false;
+      for (let r = 0; r < rowPositions.length && !found; r += 1) {
+        for (let c = 0; c < colPositions.length; c += 1) {
+          const candidate = `${c}:${r}`;
+          if (!occupied.has(candidate)) {
+            col = c;
+            row = r;
+            key = candidate;
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    occupied.add(key);
+    setTablePosition(table, colPositions[col], rowPositions[row]);
+  });
+
+  if (updateRatios) syncGridTableRatios(grid);
+}
+
+function applyGridTableRatios(grid, width, height, tableSize, columns, gap, updateRatios = true) {
+  const tables = getGridTables(grid);
+  const { maxLeft, maxTop } = getAxisBounds(width, height, tableSize, tables.length, columns, gap);
+
+  tables.forEach((table) => {
+    const ratioX = Number(table.dataset.ratioX);
+    const ratioY = Number(table.dataset.ratioY);
+    if (!Number.isFinite(ratioX) || !Number.isFinite(ratioY)) return;
+    const left = clamp(denormalizePosition(ratioX, PLAN_PADDING, maxLeft), PLAN_PADDING, maxLeft);
+    const top = clamp(denormalizePosition(ratioY, PLAN_PADDING, maxTop), PLAN_PADDING, maxTop);
+    setTablePosition(table, left, top);
+  });
+
+  snapGridTablesToCells(grid, width, height, tableSize, columns, gap, updateRatios);
+}
+
 export function applyGridDimensions(grid) {
-  const requestedWidth = parseFloat(grid.dataset.customWidth || "0") || grid.clientWidth;
-  const requestedHeight = parseFloat(grid.dataset.customHeight || "0");
-  const minPlanWidth = window.innerWidth < 1280 ? 320 : PLAN_MIN_W;
-  const width = clamp(requestedWidth, minPlanWidth, PLAN_MAX_W);
+  const requestedWidthFromState = parseFloat(grid.dataset.customWidth || "0");
+  const requestedHeightFromState = parseFloat(grid.dataset.customHeight || "0");
+  const requestedWidth = requestedWidthFromState || grid.clientWidth;
+  const requestedHeight = requestedHeightFromState || 0;
+  const parentWidth = Math.floor(grid.parentElement?.clientWidth || 0);
+  const viewportWidth = Math.max(260, window.innerWidth - PLAN_PADDING * 2);
+  const maxResponsiveWidth = Math.min(PLAN_MAX_W, parentWidth || viewportWidth);
+  const baseMinWidth = window.innerWidth < 1280 ? 320 : PLAN_MIN_W;
+  const minPlanWidth = Math.min(baseMinWidth, maxResponsiveWidth);
+  const width = clamp(requestedWidth, minPlanWidth, maxResponsiveWidth);
   const columns = getColumnsForWidth(width);
   const gap = getGapForWidth(width);
-  const rows = Math.ceil(TABLE_COUNT / columns);
+  const tableCount = Math.max(getGridTables(grid).length, 1);
+  const rows = Math.ceil(tableCount / columns);
   const tableSize = getTableSizeForWidth(width, columns, gap);
   const baseHeight = PLAN_PADDING * 2 + rows * tableSize + (rows - 1) * gap;
   const height = clamp(Math.max(requestedHeight || baseHeight, baseHeight), PLAN_MIN_H, PLAN_MAX_H);
 
   grid.style.width = `${width}px`;
   grid.style.height = `${height}px`;
-  grid.dataset.customWidth = String(width);
-  grid.dataset.customHeight = String(height);
+  if (!requestedWidthFromState) {
+    grid.dataset.customWidth = String(width);
+  }
+  if (!requestedHeightFromState) {
+    grid.dataset.customHeight = String(height);
+  }
   grid.dataset.tableSize = String(tableSize);
   grid.dataset.tableColumns = String(columns);
   grid.dataset.tableGap = String(gap);
   updateTableVisualSize(grid, tableSize);
-  return { width, height, tableSize };
+  return { width, height, tableSize, columns, gap };
 }
 
 export function layoutGridTables(grid) {
@@ -152,47 +296,34 @@ export function layoutGridTables(grid) {
     const top = PLAN_PADDING + row * (tableSize + gap);
     setTablePosition(table, left, top);
   });
+  syncGridTableRatios(grid);
 }
 
-export function resizePlan(grid, deltaWidth, deltaHeight) {
+export function resizePlan(grid, deltaWidth, deltaHeight, options = {}) {
   if (!grid || !grid.isConnected) return;
+  const commitLayout = options.commitLayout !== false;
+
+  if (commitLayout) {
+    syncGridTableRatios(grid);
+  }
 
   const oldWidth = grid.clientWidth;
   const oldHeight = grid.clientHeight;
-  const oldTableSize = parseFloat(grid.dataset.tableSize || "0");
-  const oldColumns = parseInt(grid.dataset.tableColumns || String(DESKTOP_TABLE_COLUMNS), 10);
-  const oldGap = parseInt(grid.dataset.tableGap || String(TABLE_GAP_DESKTOP), 10);
-  const oldRows = Math.ceil(TABLE_COUNT / oldColumns);
-  const oldBaseHeight = PLAN_PADDING * 2 + oldRows * oldTableSize + (oldRows - 1) * oldGap;
-  const oldMaxLeft = oldWidth - oldTableSize - PLAN_PADDING;
-  const oldMaxTop = Math.max(oldHeight, oldBaseHeight) - oldTableSize - PLAN_PADDING;
 
-  const tables = getGridTables(grid);
-  const ratios = tables.map((table) => {
-    const pos = readTablePosition(table);
-    return {
-      table,
-      ratioX: normalizePosition(pos.left, PLAN_PADDING, oldMaxLeft),
-      ratioY: normalizePosition(pos.top, PLAN_PADDING, oldMaxTop),
-    };
-  });
+  const currentWidth = parseFloat(grid.dataset.customWidth || "0") || oldWidth;
+  const currentHeight = parseFloat(grid.dataset.customHeight || "0") || oldHeight;
+  const baseHeight = parseFloat(grid.dataset.baseHeight || "0") || currentHeight;
+  const maxGrowHeight = baseHeight + PLAN_RESIZE_STEP_H * MAX_PLAN_GROW_STEPS;
+  let nextHeight = currentHeight + deltaHeight;
+  if (deltaHeight > 0) {
+    nextHeight = Math.min(nextHeight, maxGrowHeight);
+  }
 
-  grid.dataset.customWidth = String((parseFloat(grid.dataset.customWidth || "0") || oldWidth) + deltaWidth);
-  grid.dataset.customHeight = String((parseFloat(grid.dataset.customHeight || "0") || oldHeight) + deltaHeight);
+  grid.dataset.customWidth = String(currentWidth + deltaWidth);
+  grid.dataset.customHeight = String(nextHeight);
 
-  const { width, height, tableSize } = applyGridDimensions(grid);
-  const newColumns = parseInt(grid.dataset.tableColumns || String(DESKTOP_TABLE_COLUMNS), 10);
-  const newGap = parseInt(grid.dataset.tableGap || String(TABLE_GAP_DESKTOP), 10);
-  const newRows = Math.ceil(TABLE_COUNT / newColumns);
-  const newBaseHeight = PLAN_PADDING * 2 + newRows * tableSize + (newRows - 1) * newGap;
-  const newMaxLeft = width - tableSize - PLAN_PADDING;
-  const newMaxTop = Math.max(height, newBaseHeight) - tableSize - PLAN_PADDING;
-
-  ratios.forEach((item) => {
-    const nextLeft = clamp(denormalizePosition(item.ratioX, PLAN_PADDING, newMaxLeft), PLAN_PADDING, newMaxLeft);
-    const nextTop = clamp(denormalizePosition(item.ratioY, PLAN_PADDING, newMaxTop), PLAN_PADDING, newMaxTop);
-    setTablePosition(item.table, nextLeft, nextTop);
-  });
+  const { width, height, tableSize, columns, gap } = applyGridDimensions(grid);
+  applyGridTableRatios(grid, width, height, tableSize, columns, gap, commitLayout);
 }
 
 export function getPlanKeyByGrid(state, grid) {
@@ -220,8 +351,9 @@ export function setPlanCursor(state, planKey) {
     table.classList.add("cursor-grab");
   });
 
-  plan.grid.classList.toggle("cursor-move", !locked);
-  plan.grid.classList.toggle("cursor-default", locked);
+  // Grid panning is disabled; only table dragging remains enabled when unlocked.
+  plan.grid.classList.remove("cursor-move");
+  plan.grid.classList.add("cursor-default");
 }
 
 export function updatePlanLockUI(state, planKey) {
@@ -255,6 +387,7 @@ export function resetPlan(state, planKey) {
   plan.grid.dataset.customWidth = String(plan.defaultWidth || plan.grid.clientWidth || 1200);
   if (plan.defaultHeight) plan.grid.dataset.customHeight = String(plan.defaultHeight);
   layoutGridTables(plan.grid);
+  syncGridTableRatios(plan.grid);
 }
 
 export function createPlanCardElement(planKey) {
@@ -344,7 +477,18 @@ export function initDraggableGrid(state, gridElement, handlers) {
 
   layoutGridTables(gridElement);
   gridElement.dataset.customHeight = String(gridElement.clientHeight);
-  applyGridDimensions(gridElement);
+  gridElement.dataset.baseHeight = String(gridElement.clientHeight);
+  const dimensions = applyGridDimensions(gridElement);
+  applyGridTableRatios(
+    gridElement,
+    dimensions.width,
+    dimensions.height,
+    dimensions.tableSize,
+    dimensions.columns,
+    dimensions.gap,
+    true,
+  );
+  syncGridTableRatios(gridElement);
   gridElement.addEventListener("pointerdown", handlers.onGridPointerDown);
   gridElement.addEventListener("contextmenu", handlers.onGridContextMenu);
 
@@ -375,20 +519,71 @@ export function mountMissingPlan(state, handlers) {
   state.plans[planKey].locked = true;
 
   initDraggableGrid(state, grid, handlers);
+  refreshResponsivePlans(state);
+}
+
+export function refreshResponsivePlans(state) {
+  if (state.dragState) return;
+  getActivePlanEntries(state).forEach((plan) => {
+    if (!plan.grid.dataset.customWidth) {
+      plan.grid.dataset.customWidth = String(plan.grid.clientWidth || 1200);
+    }
+    // Keep saved user layout while adapting to viewport/container.
+    resizePlan(plan.grid, 0, 0, { commitLayout: false });
+
+    // Failsafe: if a bad state left tables without valid coordinates, rebuild layout.
+    const tables = getGridTables(plan.grid);
+    const hasInvalidPosition = tables.some((table) => {
+      const left = parseFloat(table.style.left || "");
+      const top = parseFloat(table.style.top || "");
+      return !Number.isFinite(left) || !Number.isFinite(top);
+    });
+    if (hasInvalidPosition) {
+      layoutGridTables(plan.grid);
+    }
+  });
+  syncStaticAsideHeight(state, true);
 }
 
 export function initPlanGrids(state, handlers) {
   Object.values(state.plans).forEach((plan) => initDraggableGrid(state, plan.grid, handlers));
 
-  window.addEventListener("resize", () => {
-    getActivePlanEntries(state).forEach((plan) => {
-      if (!plan.grid.dataset.customWidth) {
-        plan.grid.dataset.customWidth = String(plan.grid.clientWidth || 1200);
-      }
-      applyGridDimensions(plan.grid);
+  let rafId = 0;
+  const scheduleResponsiveRefresh = () => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = 0;
+      refreshResponsivePlans(state);
     });
-    syncStaticAsideHeight(state, true);
-  });
+  };
+
+  window.addEventListener("resize", scheduleResponsiveRefresh);
+  window.addEventListener("orientationchange", scheduleResponsiveRefresh);
+
+  if (state.plansColumn && typeof ResizeObserver !== "undefined") {
+    const resizeObserver = new ResizeObserver(() => scheduleResponsiveRefresh());
+    resizeObserver.observe(state.plansColumn);
+    getActivePlanEntries(state).forEach((plan) => {
+      const host = plan.grid?.parentElement || plan.grid;
+      if (host) resizeObserver.observe(host);
+    });
+    state.planResizeObserver = resizeObserver;
+
+    const mutationObserver = new MutationObserver(() => {
+      getActivePlanEntries(state).forEach((plan) => {
+        const host = plan.grid?.parentElement || plan.grid;
+        if (host) resizeObserver.observe(host);
+      });
+      scheduleResponsiveRefresh();
+    });
+    mutationObserver.observe(state.plansColumn, { childList: true, subtree: true });
+    state.planMutationObserver = mutationObserver;
+  } else if (state.plansColumn) {
+    // Compatibility fallback (older engines without ResizeObserver).
+    window.addEventListener("resize", scheduleResponsiveRefresh);
+  }
+
+  scheduleResponsiveRefresh();
 
   Object.keys(state.plans).forEach((planKey) => {
     state.plans[planKey].locked = true;

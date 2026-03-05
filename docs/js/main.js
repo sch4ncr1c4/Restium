@@ -60,9 +60,11 @@ initTableModals(state, {
   onPlanAction: (action, _planKey, plan) => {
     if (action === "grow") {
       resizePlan(plan.grid, 0, 80);
+      syncStaticAsideHeight(state, true);
     }
     if (action === "shrink") {
       resizePlan(plan.grid, 0, -80);
+      syncStaticAsideHeight(state, true);
     }
   },
 });
