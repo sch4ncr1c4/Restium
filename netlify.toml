@@ -1,0 +1,15 @@
+[build]
+  publish = "docs"
+  command = "echo Static site deploy"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://restium.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://restium.onrender.com/uploads/:splat"
+  status = 200
+  force = true
