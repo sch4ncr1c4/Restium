@@ -1,10 +1,10 @@
-import { apiRequest, saveAuthUser } from "../services/apiClient.js";
+import { apiRequest, saveAuthUser, getBackendBaseUrl } from "../services/apiClient.js";
 import { renderOrderCategories } from "../modals/orderModal.js";
 import { renderCatalog } from "../catalog/catalogRender.js";
 import { renderWaiters } from "../orders/ordersRender.js";
 import { applyRoleAccess, setView } from "./views.js";
 
-const BACKEND_BASE_URL = "http://localhost:3000";
+const BACKEND_BASE_URL = getBackendBaseUrl();
 
 function resolveProductImageUrl(value) {
   if (!value) return "";

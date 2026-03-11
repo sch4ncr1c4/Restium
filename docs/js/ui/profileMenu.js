@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:3000/api";
+import { getApiBaseUrl } from "../services/apiClient.js";
+
 const SIGNIN_PATH = "./signin.html";
 const THEME_STORAGE_KEY = "dashboardTheme";
 
@@ -73,7 +74,8 @@ async function requestBackendLogout() {
   if (!refreshToken) return;
 
   try {
-    await fetch(`${API_BASE_URL}/auth/logout`, {
+    const apiBaseUrl = getApiBaseUrl();
+    await fetch(`${apiBaseUrl}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

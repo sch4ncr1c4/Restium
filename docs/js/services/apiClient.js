@@ -1,7 +1,28 @@
-const DEFAULT_API_BASE_URL = "http://localhost:3000/api";
+const LOCAL_API_BASE_URL = "http://localhost:3000/api";
 
-function getApiBaseUrl() {
-  return localStorage.getItem("apiBaseUrl") || DEFAULT_API_BASE_URL;
+function normalizeApiBaseUrl(value) {
+  const base = String(value || "").trim();
+  if (!base) return "";
+  return base.replace(/\/+$/, "");
+}
+
+function resolveDefaultApiBaseUrl() {
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1") {
+    return LOCAL_API_BASE_URL;
+  }
+  return "/api";
+}
+
+export function getApiBaseUrl() {
+  const stored = localStorage.getItem("apiBaseUrl");
+  return normalizeApiBaseUrl(stored || resolveDefaultApiBaseUrl());
+}
+
+export function getBackendBaseUrl() {
+  const apiBaseUrl = getApiBaseUrl();
+  if (apiBaseUrl === "/api") return "";
+  return apiBaseUrl.replace(/\/api$/, "");
 }
 
 function getStoredTokens() {

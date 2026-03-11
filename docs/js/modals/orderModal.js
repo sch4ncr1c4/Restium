@@ -2,7 +2,7 @@ import { openModal, closeModal } from "./modalCore.js";
 import { getPlanKeyByGrid } from "../plans/planGrid.js";
 import { renderCatalog } from "../catalog/catalogRender.js";
 import { renderOrderModal, renderWaiters, ensureOrderMeta } from "../orders/ordersRender.js";
-import { apiRequest } from "../services/apiClient.js";
+import { apiRequest, getBackendBaseUrl, getApiBaseUrl } from "../services/apiClient.js";
 
 const CATALOG_PALETTE = [
   "#FFFFFF",
@@ -30,7 +30,8 @@ const CATALOG_PALETTE = [
 const MAX_PRODUCT_NAME_LENGTH = 60;
 const MAX_CATEGORY_NAME_LENGTH = 30;
 const PRINTER_TARGET_OPTIONS = ["comanda salon", "comanda cocina", "comanda barra"];
-const BACKEND_BASE_URL = "http://localhost:3000";
+const BACKEND_BASE_URL = getBackendBaseUrl();
+const API_BASE_URL = getApiBaseUrl();
 
 function normalizeCategory(value) {
   return (value || "").trim();
@@ -1128,7 +1129,7 @@ export function initQuickCatalogModals(state) {
     deleteBtn.classList.add("opacity-70");
     try {
       const accessToken = localStorage.getItem("accessToken");
-      const rawResponse = await fetch(`${BACKEND_BASE_URL}/api/products/${selectedProductId}`, {
+      const rawResponse = await fetch(`${API_BASE_URL}/products/${selectedProductId}`, {
         method: "DELETE",
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       });
@@ -1591,8 +1592,8 @@ export function initQuickCatalogModals(state) {
 
       const isEditing = Boolean(selectedProductId);
       const endpoint = isEditing
-        ? `${BACKEND_BASE_URL}/api/products/${selectedProductId}`
-        : `${BACKEND_BASE_URL}/api/products`;
+        ? `${API_BASE_URL}/products/${selectedProductId}`
+        : `${API_BASE_URL}/products`;
 
       const rawResponse = await fetch(endpoint, {
         method: isEditing ? "PATCH" : "POST",
@@ -1693,8 +1694,8 @@ export function initQuickCatalogModals(state) {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const endpoint = selectedStaffId
-        ? `${BACKEND_BASE_URL}/api/users/${selectedStaffId}`
-        : `${BACKEND_BASE_URL}/api/users`;
+        ? `${API_BASE_URL}/users/${selectedStaffId}`
+        : `${API_BASE_URL}/users`;
       const method = selectedStaffId ? "PATCH" : "POST";
       const rawResponse = await fetch(endpoint, {
         method,
@@ -1747,7 +1748,7 @@ export function initQuickCatalogModals(state) {
     btn.classList.add("opacity-70");
     try {
       const accessToken = localStorage.getItem("accessToken");
-      const rawResponse = await fetch(`${BACKEND_BASE_URL}/api/users/${selectedStaffId}`, {
+      const rawResponse = await fetch(`${API_BASE_URL}/users/${selectedStaffId}`, {
         method: "DELETE",
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       });

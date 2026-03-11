@@ -1,7 +1,12 @@
 const API_BASE_CANDIDATES = [
+  localStorage.getItem("apiBaseUrl"),
+  `${window.location.origin}/api`,
   "http://localhost:3000/api",
   "http://127.0.0.1:3000/api",
-];
+]
+  .filter(Boolean)
+  .map((value) => String(value).replace(/\/+$/, ""))
+  .filter((value, index, source) => source.indexOf(value) === index);
 const DASHBOARD_PATH = "./dashboard.html";
 
 const signinForm = document.getElementById("signinForm");

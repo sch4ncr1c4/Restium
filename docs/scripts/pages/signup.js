@@ -1,4 +1,12 @@
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_CANDIDATES = [
+  localStorage.getItem("apiBaseUrl"),
+  `${window.location.origin}/api`,
+  "http://localhost:3000/api",
+  "http://127.0.0.1:3000/api",
+]
+  .filter(Boolean)
+  .map((value) => String(value).replace(/\/+$/, ""))
+  .filter((value, index, source) => source.indexOf(value) === index);
 const DASHBOARD_PATH = "./dashboard.html";
 
 const signupForm = document.getElementById("signupForm");
@@ -47,27 +55,47 @@ async function handleSignup(event) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        name: ownerName,
-        businessName: businessUsername,
-        businessUsername,
-      }),
-    });
+    let response = null;
+    let payload = null;
+    let usedBaseUrl = null;
+    let lastNetworkError = null;
 
-    const payload = await response.json();
+    for (const baseUrl of API_BASE_CANDIDATES) {
+      try {
+        const attempt = await fetch(`${baseUrl}/auth/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            name: ownerName,
+            businessName: businessUsername,
+            businessUsername,
+          }),
+        });
+        response = attempt;
+        payload = await response.json().catch(() => ({}));
+        usedBaseUrl = baseUrl;
+        break;
+      } catch (error) {
+        lastNetworkError = error;
+      }
+    }
+
+    if (!response) {
+      throw lastNetworkError || new Error("network error");
+    }
 
     if (!response.ok) {
       showMessage(payload.message || "No se pudo crear la cuenta.", true);
       return;
     }
 
+    if (usedBaseUrl) {
+      localStorage.setItem("apiBaseUrl", usedBaseUrl);
+    }
     saveSession(payload);
     showMessage("Cuenta creada. Redirigiendo...");
     setTimeout(redirectToDashboard, 500);

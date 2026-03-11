@@ -1,6 +1,18 @@
 import { loginRequest, logoutRequest, meRequest, registerRequest } from "../api/authApi.js";
 
-const LOGIN_BASE_URLS = ["http://localhost:3000/api", "http://127.0.0.1:3000/api"];
+function buildLoginBaseUrls() {
+  const candidates = [];
+  const stored = localStorage.getItem("apiBaseUrl");
+  if (stored) candidates.push(stored);
+
+  const originApi = `${window.location.origin}/api`;
+  candidates.push(originApi);
+
+  candidates.push("http://localhost:3000/api");
+  candidates.push("http://127.0.0.1:3000/api");
+
+  return [...new Set(candidates.map((value) => String(value).replace(/\/+$/, "")))];
+}
 
 function saveSession(payload) {
   localStorage.setItem("accessToken", payload.accessToken);
@@ -26,7 +38,7 @@ export function readStoredUser() {
 
 export async function loginWithFallback(payload) {
   let lastError = null;
-  for (const baseUrl of LOGIN_BASE_URLS) {
+  for (const baseUrl of buildLoginBaseUrls()) {
     localStorage.setItem("apiBaseUrl", baseUrl);
     try {
       const response = await loginRequest(payload);

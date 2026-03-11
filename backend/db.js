@@ -3,12 +3,13 @@ const { Pool } = require("pg");
 
 dotenv.config({ quiet: true });
 
-const isProduction = process.env.NODE_ENV === "production";
+const disableDbSsl = String(process.env.DB_SSL || "").toLowerCase() === "false";
 
 const poolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-      ssl: isProduction ? { rejectUnauthorized: false } : false,
+      // Supabase pooler requires TLS; keep cert validation relaxed for hosted environments.
+      ssl: disableDbSsl ? false : { rejectUnauthorized: false },
     }
   : {
       host: process.env.DB_HOST || "localhost",
